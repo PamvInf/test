@@ -24,3 +24,6 @@ pip install -r $requirementsTxtPath
 
 # Ejecuta decrypt.py
 python $decryptPyPath
+
+exit
+exit
